@@ -149,20 +149,6 @@ void part2(BoardMatrix& matrix) {
     std::cout << "Part 1 Output: " << score << "\n";
 }
 
-void print_matrix(BoardMatrix& matrix) {
-    
-    std::cout << "Width " << matrix.width << "\n";
-    std::cout << "Height " << matrix.height << "\n";
-
-    for(unsigned int x = 0; x < matrix.width; x++) {
-        for(unsigned int y = 0; y < matrix.height; y++) {
-            std::cout << matrix.grid[y][x];
-        }
-        std::cout << "\n";
-    }
-
-}
-
 int main() {
 
     std::ifstream input("input.txt");
@@ -183,7 +169,6 @@ int main() {
         input.close();
     }
 
-    //print_matrix(board);
     part1(board);
     part2(board);
 
