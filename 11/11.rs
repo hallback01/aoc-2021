@@ -138,7 +138,12 @@ fn main() {
 
     for line in input.split('\n') {
         for value in line.chars() {
-            grid[x][y] = value.to_digit(10).unwrap();
+        
+            match value.to_digit(10) {
+                Some(val) => grid[x][y] = val,
+                None => println!("Something happened.."),
+            }
+
             x+=1;
         }
         y+=1;
