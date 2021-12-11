@@ -89,7 +89,6 @@ fn simulate(grid: &mut [[u32; WIDTH]; HEIGHT]) -> u32 {
     for x in 0..WIDTH {
         for y in 0..HEIGHT {
             if grid[x][y] > 9 {
-                //flashes+=1;
                 grid[x][y] = 0;
             }
         }
@@ -127,29 +126,37 @@ fn part2(mut grid: [[u32; WIDTH]; HEIGHT]) {
 
 fn main() {
 
-    let input = std::fs::read_to_string("input.txt").unwrap();
+    let filename = "input.txt";
 
-    //println!("{}", input);
+    match std::fs::read_to_string(filename) {
 
-    let mut grid = [[0u32; WIDTH]; HEIGHT];
+        Ok(input) => {
+            
+            let mut grid = [[0u32; WIDTH]; HEIGHT];
 
-    let mut x = 0;
-    let mut y = 0;
+            let mut x = 0;
+            let mut y = 0;
 
-    for line in input.split('\n') {
-        for value in line.chars() {
-        
-            match value.to_digit(10) {
-                Some(val) => grid[x][y] = val,
-                None => {},
+            for line in input.split('\n') {
+                for value in line.chars() {
+                
+                    match value.to_digit(10) {
+                        Some(val) => grid[x][y] = val,
+                        None => {},
+                    }
+
+                    x+=1;
+                }
+                y+=1;
+                x=0;
             }
+            
+            part1(grid);
+            part2(grid);
 
-            x+=1;
-        }
-        y+=1;
-        x=0;
-    }
-    
-    part1(grid);
-    part2(grid);
+        },
+        Err(_e) => {
+            println!("Could not open the file '{}'. Does it exist?", filename);
+        },
+    };
 }
