@@ -141,7 +141,7 @@ fn main() {
         
             match value.to_digit(10) {
                 Some(val) => grid[x][y] = val,
-                None => println!("Something happened.."),
+                None => {},
             }
 
             x+=1;
