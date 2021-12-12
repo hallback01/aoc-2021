@@ -37,14 +37,9 @@ fn path_amount(start: &str, end: &str, connected_caves: &Vec<(&str, &str)>, part
 						}
 
 					} else {
-
-						let now = std::time::Instant::now();
-
 						if can_visit_again(&path, &cave) {
 							to_insert.push(String::from(format!("{},{}", path, cave)));
 						}
-
-						//println!("{} ms", now.elapsed().as_micros() as f32 / 1000.0);
 					}
 				}
 			}
