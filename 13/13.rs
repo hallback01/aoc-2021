@@ -27,10 +27,10 @@ fn print_letters(dots: &HashSet<(i32, i32)>) -> String {
 	let mut ret_string = String::from("\n");
 
 	for (x,y) in dots {
-		if x > &width {
+		if x+1 > width {
 			width = *x + 1;
 		}
-		if y > &height {
+		if y+1 > height {
 			height = *y + 1;
 		}
 	}
