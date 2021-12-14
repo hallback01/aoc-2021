@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::collections::BTreeMap;
 
 fn construct_pairs(input: &String) -> HashMap<String, u64> {
 	
@@ -75,9 +74,7 @@ fn get_low_high(pairs: &HashMap<String, u64>) -> (u64, u64) {
 
 	let mut map: HashMap<String, u64> = HashMap::new();
 
-	let mut total: u128 = 1;
 	for (pair, amount) in pairs {
-		total += *amount as u128;
 
 		let first_char = String::from(&pair[0..1]);
 		let second_char = String::from(&pair[1..2]);
