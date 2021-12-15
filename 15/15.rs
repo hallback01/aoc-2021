@@ -39,7 +39,7 @@ fn get_heuristic(_x1: i32, _y1: i32, _x2: i32, _y2: i32) -> usize {
 	//let _dx: i32 = (_x1 - _x2).abs();
 	//let _dy: i32 = (_y1 - _y2).abs();
 	//return (dx + dy) as usize;
-	return 0; //eliminate the heurstic because A* doesn't guarantee the shortest paht... Now it is dijkstra's instead.
+	return 0; //eliminate the heurstic because A* doesn't guarantee the shortest path... Without it, it's basically dijkstra's algorithm
 }
 
 fn push_new_node(g: usize, x: i32, y: i32, grid: &Grid, already_added: &mut HashSet<(i32, i32)>, queue: &mut Vec<(usize, usize, usize, usize)>) {
