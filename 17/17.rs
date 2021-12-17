@@ -12,12 +12,7 @@ struct Vector {
 
 impl Rectangle {
 	fn new(x1: i32, y1: i32, x2: i32, y2: i32) -> Rectangle {
-		return Rectangle {
-			x1,
-			y1,
-			x2,
-			y2
-		};
+		return Rectangle {x1,y1,x2,y2};
 	}
 	fn contains_vector(&self, vector: &Vector) -> bool {
 		if vector.x >= self.x1 && vector.x <= self.x2 {
@@ -31,10 +26,7 @@ impl Rectangle {
 
 impl Vector {
 	fn new(x: i32, y: i32) -> Vector {
-		return Vector {
-			x,
-			y
-		};
+		return Vector {x, y};
 	}
 	fn add(&mut self, other: &Vector) {
 		self.x += other.x;
@@ -42,13 +34,13 @@ impl Vector {
 	}
 }
 
-fn try_velocity(x: i32, y:i32) -> (i32, bool) {
+fn try_velocity(x: i32, y:i32) -> Option<i32> {
 
 	let mut position = Vector::new(0, 0);
 	let mut velocity = Vector::new(x, y);
 	let area = Rectangle::new(79, -176, 137, -117); //my speficic input: x1, y1, x2, y2
 
-	let mut height = -100000;
+	let mut height = -176;
 
 	while !area.contains_vector(&position) {
 
@@ -65,11 +57,11 @@ fn try_velocity(x: i32, y:i32) -> (i32, bool) {
 		}
 
 		if position.y < area.y1 || position.x > area.x2 {
-			return (height, false);
+			return None;
 		}
 	}
 
-	return (height, true);
+	return Some(height);
 }
 
 fn simulate() {
@@ -80,8 +72,7 @@ fn simulate() {
 	let mut count = 0;
 	for y in -range..range {
 		for x in -range..range {
-			let (height, succeeded) = try_velocity(x, y);
-			if succeeded {
+			if let Some(height) = try_velocity(x, y) {
 				count+=1;
 				if height > highest {
 					highest = height;
