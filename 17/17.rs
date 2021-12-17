@@ -40,7 +40,7 @@ fn try_velocity(x: i32, y:i32) -> Option<i32> {
 	let mut velocity = Vector::new(x, y);
 	let area = Rectangle::new(79, -176, 137, -117); //my speficic input: x1, y1, x2, y2
 
-	let mut height = -176;
+	let mut height = area.y1;
 
 	while !area.contains_vector(&position) {
 
