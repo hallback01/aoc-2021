@@ -89,6 +89,22 @@ impl Quaternion {
 		return Vector3 {x: h, y: p, z: b};
 
 	}
+
+	fn multiply(a: &Quaternion, b: &Quaternion) -> Quaternion {
+		return Quaternion {
+			w: a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
+			x: a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+			y: a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
+			z: a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w 
+		}
+	}
+
+	fn inverse(quat: &Quaternion) -> Quaternion {
+		//magnitude
+		let magn = (quat.w * quat.w + quat.x*quat.x + quat.y*quat.y + quat.z*quat.z).sqrt();
+		let inverse = Quaternion::construct(quat.w / magn, -quat.x / magn, -quat.y / magn, -quat.z / magn);
+		return inverse;
+	}
 }
 
 impl Vector3 {
@@ -189,9 +205,8 @@ fn find_rotation_position(complete_scanners: &Vec<Scanner>, scanner: &Scanner) -
 
 	for (i,complete_scanner) in complete_scanners.iter().enumerate() {
 
-		for i in 0..complete_scanner.beacons.len() {
-
-			for j in i..scanner.beacons.len() {
+		for j in 0..scanner.beacons.len() {
+			for i in 0..complete_scanner.beacons.len() {
 
 				let origin = &complete_scanner.beacons[i];
 				let check = &scanner.beacons[j];
@@ -207,7 +222,7 @@ fn find_rotation_position(complete_scanners: &Vec<Scanner>, scanner: &Scanner) -
 							let matrix = Matrix::trs(&Vector3::zero(), &Quaternion::euler(x_angle, y_angle, z_angle), &Vector3::new(1.0, 1.0, 1.0));
 							let new_vec = Vector3::matrix_multiply(&check, &matrix);
 			
-							let delta = Vector3::new(origin.x - new_vec.x, origin.y - new_vec.y, origin.z - new_vec.z);
+							let delta = Vector3::new((origin.x - new_vec.x).round(), (origin.y - new_vec.y).round(), (origin.z - new_vec.z).round());
 
 							match occurences.get_mut(&delta.to_string()) {
 								Some((_, _, amount)) => {
@@ -226,13 +241,19 @@ fn find_rotation_position(complete_scanners: &Vec<Scanner>, scanner: &Scanner) -
 						let trs = Matrix::trs(&complete_scanner.position, &Quaternion::euler(complete_scanner.rotation.x, complete_scanner.rotation.y, complete_scanner.rotation.z), &Vector3::new(1.0, 1.0, 1.0));
 						let transformed_to_origin = Vector3::matrix_multiply(&position, &trs);
 
-						let transform_rotation = Vector3::new(rotation.x - complete_scanner.rotation.x, rotation.y - complete_scanner.rotation.y, rotation.z - complete_scanner.rotation.z);
+						let transform_rotation = Vector3::new(-rotation.x - complete_scanner.rotation.x, -rotation.y - complete_scanner.rotation.y, -rotation.z - complete_scanner.rotation.z);
 
-						println!("{}; {}", transformed_to_origin, complete_scanner.rotation);
+						let mut this_rotation = Quaternion::euler(rotation.x, rotation.y, rotation.z);
+						this_rotation = Quaternion::inverse(&this_rotation);
 
-						
+						let mut other_rotation = Quaternion::euler(complete_scanner.rotation.x, complete_scanner.rotation.y, complete_scanner.rotation.z);
+						other_rotation = Quaternion::inverse(&other_rotation);
 
-						return Some((transformed_to_origin.clone(), rotation.clone()));
+						let new_quaternion = Quaternion::multiply(&other_rotation, &this_rotation);
+
+						println!("{}; {}", transformed_to_origin, transform_rotation.clone());
+
+						return Some((transformed_to_origin.clone(), Vector3::zero()));
 					}
 				}
 			}
@@ -247,21 +268,17 @@ fn get_unique_beacon_count(scanners: &Vec<Scanner>) -> usize {
 
 	let mut unique_beacons: std::collections::HashSet<String> = std::collections::HashSet::new();
 
-	let mut count = 0;
-
 	for scanner in scanners.iter() {
 		for vector in scanner.beacons.iter() {
 
 			let transformed_vector = Vector3::matrix_multiply(&vector, &Matrix::trs(&scanner.position, &Quaternion::euler(scanner.rotation.x, scanner.rotation.y, scanner.rotation.z), &Vector3::new(1.0, 1.0, 1.0)));
 
-			if unique_beacons.insert(transformed_vector.to_string()) {
-				count += 1;
-			}
+			unique_beacons.insert(transformed_vector.to_string());
 
 		}
 	}
 
-	return count;
+	return unique_beacons.len();
 
 }
 
