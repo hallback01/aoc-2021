@@ -1,3 +1,3 @@
 # aoc-2021
 My "Advent of Code 2021" code!
-Half of it will be written in C++ and the rest in Rust.
+Started learning rust after day 10. It's basically all naive implementations, some I am more proud of than others!
