@@ -54,56 +54,12 @@ impl std::ops::Mul for Matrix {
 }
 
 impl Quaternion {
-	fn new() -> Quaternion {
-		return Quaternion {w: 1.0, x: 0.0, y: 0.0, z: 0.0}
-	}
-	fn construct(w: f64, x: f64, y: f64, z: f64) -> Quaternion {
-		return Quaternion {w, x, y, z}
-	}
 	fn euler(h: f64, p: f64, b: f64) -> Quaternion {
 		let w =  f64::cos(h/2.0)*f64::cos(p/2.0)*f64::cos(b/2.0) + f64::sin(h/2.0)*f64::sin(p/2.0)*f64::sin(b/2.0);
 		let x = -f64::cos(h/2.0)*f64::sin(p/2.0)*f64::cos(b/2.0) - f64::sin(h/2.0)*f64::cos(p/2.0)*f64::sin(b/2.0);
 		let y =  f64::cos(h/2.0)*f64::sin(p/2.0)*f64::sin(b/2.0) - f64::sin(h/2.0)*f64::cos(p/2.0)*f64::cos(b/2.0);
 		let z =  f64::sin(h/2.0)*f64::sin(p/2.0)*f64::cos(b/2.0) - f64::cos(h/2.0)*f64::cos(p/2.0)*f64::sin(b/2.0);
 		return Quaternion {w, x, y, z}
-	}
-
-	fn get_euler_values(&self) -> Vector3 {
-
-		let mut h: f64 = 0.0;
-		let mut p: f64 = 0.0;
-		let mut b: f64 = 0.0;
-
-		let sp = -2.0 * (self.y*self.z - self.w*self.x);
-
-		if f64::abs(sp) > 0.9999 {
-			p = std::f64::consts::PI / 2.0 * sp;
-			h = f64::atan2(-self.x * self.z, 0.5 - self.y * self.y - self.z * self.z);
-			b = 0.0;
-		} else {
-			p = f64::asin(sp);
-			h = f64::atan2(self.x*self.z - self.w*self.y, 0.5 - self.x*self.x - self.y*self.y);
-			b = f64::atan2(self.x*self.y - self.w*self.z, 0.5 - self.x*self.x - self.z*self.z);
-		}
-
-		return Vector3 {x: h, y: p, z: b};
-
-	}
-
-	fn multiply(a: &Quaternion, b: &Quaternion) -> Quaternion {
-		return Quaternion {
-			w: a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
-			x: a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
-			y: a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
-			z: a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w 
-		}
-	}
-
-	fn inverse(quat: &Quaternion) -> Quaternion {
-		//magnitude
-		let magn = (quat.w * quat.w + quat.x*quat.x + quat.y*quat.y + quat.z*quat.z).sqrt();
-		let inverse = Quaternion::construct(quat.w / magn, -quat.x / magn, -quat.y / magn, -quat.z / magn);
-		return inverse;
 	}
 }
 
@@ -113,13 +69,6 @@ impl Vector3 {
 	}
 	fn zero() -> Vector3 {
 		return Vector3 {x: 0.0, y: 0.0, z: 0.0};
-	}
-	fn construct(x: f64, y: f64, z: f64) -> Vector3 {
-		return Vector3 {
-			x: x, 
-			y: y, 
-			z: z
-		}
 	}
 	fn matrix_multiply(vector: &Vector3, matrix: &Matrix) -> Vector3 {
 		let x = vector.x * matrix[0][0] + vector.y*matrix[0][1] + vector.z*matrix[0][2] + matrix[3][0];
@@ -200,17 +149,13 @@ impl Scanner {
 }
 
 fn find_rotation_position(complete_scanners: &Vec<Scanner>, scanner: &Scanner) -> Option<(Vector3, Vector3)> {
-
 	let mut occurences: std::collections::HashMap<String, (Vector3, Vector3, usize)> = std::collections::HashMap::new();
-
-	for (i,complete_scanner) in complete_scanners.iter().enumerate() {
-
-		for j in 0..scanner.beacons.len() {
-			for i in 0..complete_scanner.beacons.len() {
-
+	for complete_scanner in complete_scanners.iter() {
+		occurences.clear();
+		for i in 0..complete_scanner.beacons.len() {
+			for j in 0..scanner.beacons.len() {
 				let origin = &complete_scanner.beacons[i];
 				let check = &scanner.beacons[j];
-
 				for x in 0..4 {
 					for y in 0..4 {
 						for z in 0..4 {
@@ -222,82 +167,82 @@ fn find_rotation_position(complete_scanners: &Vec<Scanner>, scanner: &Scanner) -
 							let matrix = Matrix::trs(&Vector3::zero(), &Quaternion::euler(x_angle, y_angle, z_angle), &Vector3::new(1.0, 1.0, 1.0));
 							let new_vec = Vector3::matrix_multiply(&check, &matrix);
 			
-							let delta = Vector3::new((origin.x - new_vec.x).round(), (origin.y - new_vec.y).round(), (origin.z - new_vec.z).round());
+							let delta = Vector3::new(origin.x - new_vec.x, origin.y - new_vec.y, origin.z - new_vec.z);
 
 							match occurences.get_mut(&delta.to_string()) {
 								Some((_, _, amount)) => {
 									*amount += 1;
+
+									if *amount >= 12 {
+										let trs = Matrix::trs(&complete_scanner.position, &Quaternion::euler(complete_scanner.rotation.x, complete_scanner.rotation.y, complete_scanner.rotation.z), &Vector3::new(1.0, 1.0, 1.0));
+										let transformed_to_origin = Vector3::matrix_multiply(&delta, &trs);
+										return Some((transformed_to_origin.clone(), Vector3::new(x_angle,y_angle,z_angle).clone()));
+									}
 								}
 								None => {
-									occurences.insert(delta.to_string(), (delta, Vector3::new(x_angle,y_angle,z_angle), 1) );
+									occurences.insert(delta.to_string(), (delta, Vector3::new(x_angle,y_angle,z_angle), 1));
 								}
 							}
 						}
 					}
 				}
-				for (_, (position, rotation, amount)) in occurences.iter() {
-					if *amount >= 12 {
-
-						let trs = Matrix::trs(&complete_scanner.position, &Quaternion::euler(complete_scanner.rotation.x, complete_scanner.rotation.y, complete_scanner.rotation.z), &Vector3::new(1.0, 1.0, 1.0));
-						let transformed_to_origin = Vector3::matrix_multiply(&position, &trs);
-
-						let transform_rotation = Vector3::new(-rotation.x - complete_scanner.rotation.x, -rotation.y - complete_scanner.rotation.y, -rotation.z - complete_scanner.rotation.z);
-
-						let mut this_rotation = Quaternion::euler(rotation.x, rotation.y, rotation.z);
-						this_rotation = Quaternion::inverse(&this_rotation);
-
-						let mut other_rotation = Quaternion::euler(complete_scanner.rotation.x, complete_scanner.rotation.y, complete_scanner.rotation.z);
-						other_rotation = Quaternion::inverse(&other_rotation);
-
-						let new_quaternion = Quaternion::multiply(&other_rotation, &this_rotation);
-
-						println!("{}; {}", transformed_to_origin, transform_rotation.clone());
-
-						return Some((transformed_to_origin.clone(), Vector3::zero()));
-					}
-				}
 			}
 		}
 	}
-
 	return None;
 
 }
 
-fn get_unique_beacon_count(scanners: &Vec<Scanner>) -> usize {
+fn get_largest_manhattan_distance(positions: &Vec<Vector3>) -> usize {
 
-	let mut unique_beacons: std::collections::HashSet<String> = std::collections::HashSet::new();
-
-	for scanner in scanners.iter() {
-		for vector in scanner.beacons.iter() {
-
-			let transformed_vector = Vector3::matrix_multiply(&vector, &Matrix::trs(&scanner.position, &Quaternion::euler(scanner.rotation.x, scanner.rotation.y, scanner.rotation.z), &Vector3::new(1.0, 1.0, 1.0)));
-
-			unique_beacons.insert(transformed_vector.to_string());
-
+	let mut highest: f64 = 0.0;
+	for scanner1 in positions.iter() {
+		for scanner2 in positions.iter() {
+			let manhattan_distance = (scanner1.x - scanner2.x).abs() + (scanner1.y - scanner2.y).abs() + (scanner1.z - scanner2.z).abs();
+			if manhattan_distance > highest {
+				highest = manhattan_distance.round();
+			}
 		}
 	}
-
-	return unique_beacons.len();
-
+	return highest as usize;
 }
 
-fn part1(scanners: &mut Vec<Scanner>) {
+fn calculate(scanners: &mut Vec<Scanner>) {
 
 	let mut complete_scanners: Vec<Scanner> = Vec::new();
 	complete_scanners.push(scanners[0].clone());
 
-	for (i, scanner) in scanners.iter_mut().enumerate() {
-		if let Some((position, rotation)) = find_rotation_position(&complete_scanners, &scanner) {
-			scanner.position = position;
-			scanner.rotation = rotation;
-			complete_scanners.push(scanner.clone());
-		} else {
-			println!("bruh {}", i);
+	let mut unique_beacons: std::collections::HashSet<String> = std::collections::HashSet::new();
+
+	let mut redo = Vec::new();
+
+	for i in 0..scanners.len() {
+		redo.push(i);
+	}
+
+	let mut positions = Vec::new();
+
+	while redo.len() > 0 {
+		let redo_copy = redo.clone();
+		redo.clear();
+		for i in redo_copy {
+			if let Some((position, rotation)) = find_rotation_position(&complete_scanners, &scanners[i]) {
+
+				positions.push(position.clone());
+
+				for vector in scanners[i].beacons.iter_mut() {
+					*vector = Vector3::matrix_multiply(&vector, &Matrix::trs(&position, &Quaternion::euler(rotation.x, rotation.y, rotation.z), &Vector3::new(1.0, 1.0, 1.0)));
+					unique_beacons.insert(vector.to_string());
+				}
+				complete_scanners.push(scanners[i].clone());
+			} else {
+				redo.push(i);
+			}
 		}
 	}
 
-	println!("Part 1 Output: {}", get_unique_beacon_count(&complete_scanners));
+	println!("Part 1 Output: {}", unique_beacons.len());
+	println!("Part 2 Output: {}", get_largest_manhattan_distance(&positions));
 
 }
 
@@ -326,5 +271,5 @@ fn main() {
 	}
 	scanners.push(scanner);
 
-	part1(&mut scanners);
+	calculate(&mut scanners);
 }
