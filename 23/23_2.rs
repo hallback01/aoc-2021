@@ -279,7 +279,7 @@ impl Ord for State {
     }
 }
 
-fn part1(start_state: &State) {
+fn part2(start_state: &State) {
 
     let mut queue: BinaryHeap<State> = BinaryHeap::new();
     let mut hash: HashMap<State, bool> = HashMap::new();
@@ -315,6 +315,6 @@ fn main() {
 
     let start_state = State::new("DDDC", "BCBC", "DBAA", "AACB");
 
-    part1(&start_state);
+    part2(&start_state);
 
 }
