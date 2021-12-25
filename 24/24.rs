@@ -1,5 +1,5 @@
 /* 
-    Credit to Strobetal!
+    Credit to @Strobetal on reddit!
 
     Not gonna lie, I used the subreddit a lot for help in this one!
     Since it was christmas eve as well I didn't have the time to 
