@@ -1,4 +1,4 @@
-//First time solving every puzzle in advent of code! Was fun! 
+//First time solving every puzzle in advent of code!
 //I wanna thank Eric Wastl for such a fun challenge!
 
 #[derive(PartialEq, Clone)]
